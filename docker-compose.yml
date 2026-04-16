@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # 后端API服务
+  api:
+    build: ./backend
+    container_name: taoci-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/taoci.db
+      - ENVIRONMENT=production
+      - CORS_ORIGINS=http://localhost:3000,http://frontend:80
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data  # 挂载数据目录
+      - ./backend:/app  # 开发时挂载代码，生产应注释掉
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - taoci-network
+
+  # 前端应用
+  frontend:
+    build: ./frontend
+    container_name: taoci-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api  # 如果通过Nginx代理，可改为/api
+    depends_on:
+      - api
+    networks:
+      - taoci-network
+
+  # Nginx反向代理（可选，如果需要统一端口）
+  nginx:
+    image: nginx:alpine
+    container_name: taoci-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/proxy.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro  # SSL证书目录
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - taoci-network
+
+networks:
+  taoci-network:
+    driver: bridge
+
+volumes:
+  # 如果需要持久化数据，可定义卷
+  # taoci-data:

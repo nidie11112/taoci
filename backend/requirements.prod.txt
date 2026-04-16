@@ -1,0 +1,29 @@
+# 生产依赖
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# 数据库
+sqlalchemy==2.0.49
+aiosqlite==0.20.0
+
+# 数据处理
+openpyxl==3.1.2
+
+# 网络请求
+aiohttp==3.9.1
+
+# HTML解析
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# 环境管理
+python-dotenv==1.0.0
+
+# 认证
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# 工具
+pyyaml==6.0.1
+click==8.1.7
